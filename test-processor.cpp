@@ -23,6 +23,8 @@ void ParseOptions(int argc,
   }
 }
 
+
+
 int main (int argc, char* argv[]){
 	std::cout << v8::V8::GetVersion() << std::endl;
 	
@@ -35,6 +37,7 @@ int main (int argc, char* argv[]){
 	ParseOptions(argc, argv, &options, &file);
 	if (file.empty()) {
 		fprintf(stderr, "No script was specified.\n");
+		fprintf(stderr, "Usage: mesibo_v8_standalone <script> \n");
 		return MESIBO_RESULT_FAIL;
 	}
 

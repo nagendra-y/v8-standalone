@@ -617,3 +617,67 @@ MaybeLocal<String> MesiboJsProcessor::ReadFile(Isolate* isolate, const string& n
 }
 
 
+/**
+ * Notify JS Callback function Mesibo_onMessage
+ **/
+mesibo_int_t MesiboJsProcessor::OnMessage(mesibo_message_params_t p, const char* message,
+		mesibo_uint_t len){
+	Log("OnMessage called\n");	
+
+	v8::Locker locker(GetIsolate());
+	v8::Isolate::Scope isolateScope(GetIsolate());
+
+	// Create a handle scope to keep the temporary object references.
+	HandleScope handle_scope(GetIsolate());
+
+	//To each it's own context
+	v8::Local<v8::Context> context = GetContext(); 
+	
+	Context::Scope context_scope(context);
+
+	v8::Handle<v8::Value> args_bundle[3];
+	v8::Local<v8::Object> params = WrapMessageParams(context, &p); // Don't pass context
+	//Replace with something like GetCurrentContext
+
+	args_bundle[0] = params; 
+	args_bundle[1] = v8::String::NewFromUtf8(GetIsolate(), message).ToLocalChecked();
+	args_bundle[2] = v8::Integer::NewFromUnsigned(GetIsolate(), len); //use utils to check for errors
+	
+	ExecuteJsFunction(context, MESIBO_LISTENER_ON_MESSAGE , 3, args_bundle);
+	
+	//Return whatever JS Callback is returning, But that would mean blocking until return value
+	return MESIBO_RESULT_OK;
+
+}
+
+/**
+ * Notify JS Callback function Mesibo_onMessageStatus
+ **/
+mesibo_int_t MesiboJsProcessor::OnMessageStatus(mesibo_message_params_t p, mesibo_uint_t status){
+	Log("OnMessageStatus called\n");	
+
+	v8::Locker locker(GetIsolate());
+
+	v8::Isolate::Scope isolateScope(GetIsolate());
+
+	// Create a handle scope to keep the temporary object references.
+	HandleScope handle_scope(GetIsolate());
+
+	//To each it's own context
+	v8::Local<v8::Context> context = GetContext(); 
+
+	Context::Scope context_scope(context);
+
+	v8::Handle<v8::Value> args_bundle[2];
+	v8::Local<v8::Object> params = WrapMessageParams(context, &p); // Don't pass context
+
+	args_bundle[0] = params; 
+	args_bundle[1] = v8::Integer::NewFromUnsigned(GetIsolate(), status); //use utils to check for errors
+
+	ExecuteJsFunction(context, MESIBO_LISTENER_ON_MESSAGE_STATUS, 2, args_bundle);
+
+	//Return whatever JS Callback is returning, But that would mean blocking until return value
+	return MESIBO_RESULT_OK;
+
+}
+
